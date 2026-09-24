@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>บันทึกขับถ่าย</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Mitr:wght@400;500;600&family=IBM+Plex+Sans+Thai:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --tile:#E6F2F1; --grout:#D3E6E4; --surface:#FFFFFF; --ink:#16363B; --muted:#5B7A7E;
+  --teal:#2A7C83; --poo:#7A4A2A; --poo-soft:#F1E4DA; --pee:#F2C230; --pee-soft:#FDF3CF; --ok:#2E7D4F; --ok-soft:#E1F2E7; --mid:#A36A00; --mid-soft:#FDF0D6;
+  --warn:#B3322B; --warn-soft:#FBE7E4; --line:#D5E4E3;
+  box-sizing:border-box; padding-left:env(safe-area-inset-left,0px); padding-right:env(safe-area-inset-right,0px); padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --tile:#0E2124; --grout:#132B2F; --surface:#17323A; --ink:#E3F0EF; --muted:#94B2B4;
+    --teal:#5FB8BE; --poo:#C99570; --poo-soft:#33271F; --pee:#F5CE45; --pee-soft:#362D17; --ok:#7FD3A0; --ok-soft:#17352A; --mid:#F2C063; --mid-soft:#3A2F14;
+    --warn:#F08A80; --warn-soft:#3A1F1D; --line:#24444A;
+  }
+}
+:root[data-theme="dark"]{
+  --tile:#0E2124; --grout:#132B2F; --surface:#17323A; --ink:#E3F0EF; --muted:#94B2B4;
+  --teal:#5FB8BE; --poo:#C99570; --poo-soft:#33271F; --pee:#F5CE45; --pee-soft:#362D17; --ok:#7FD3A0; --ok-soft:#17352A; --mid:#F2C063; --mid-soft:#3A2F14;
+  --warn:#F08A80; --warn-soft:#3A1F1D; --line:#24444A;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{
+  margin:0; color:var(--ink); font-family:"IBM Plex Sans Thai",system-ui,sans-serif; font-size:16px; line-height:1.55;
+  background:var(--tile); min-height:100vh;
+}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.wrap{max-width:480px;margin:0 auto;padding:20px 16px 48px;display:flex;flex-direction:column}
+.col{display:contents}
+.wrap>header{order:0}.o1{order:1}.o2{order:2}.o3{order:3}.o4{order:4}.o5{order:5}
+@media (min-width:760px){
+  .wrap{max-width:1180px;display:grid;grid-template-columns:minmax(320px,2fr) 3fr;column-gap:20px;align-items:start;padding:20px 24px 40px}
+  .wrap>header{grid-column:1/-1}
+  .col{display:block}
+  .bigbtn{padding:18px 10px 14px}
+}
+@media (min-width:760px) and (max-height:520px){
+  .bigbtn .ico{font-size:40px} .bigbtn{font-size:22px}
+}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;
+  background:#2A7C83;color:#fff;border-radius:22px;padding:16px 18px;box-shadow:0 4px 0 #1B565B}
+h1{font-family:Mitr,sans-serif;font-weight:600;font-size:30px;line-height:1.1;margin:0;display:flex;align-items:center;gap:10px}
+h1 .logo{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:14px;background:#FFD23F;font-size:26px}
+.sync{font-size:13px;color:rgba(255,255,255,.85);margin-top:4px}
+.clock{font-family:Mitr,sans-serif;font-size:16px;color:#fff;text-align:right;background:rgba(255,255,255,.16);border-radius:12px;padding:6px 10px;white-space:nowrap}
+
+.big{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.bigbtn{
+  border:none;border-radius:28px;padding:22px 10px 18px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  font-family:Mitr,sans-serif;font-size:26px;font-weight:500;box-shadow:0 4px 0 var(--shade);transition:transform .08s
+}
+.bigbtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--shade)}
+.bigbtn .ico{font-size:52px;line-height:1}
+.bigbtn small{font-family:"IBM Plex Sans Thai",sans-serif;font-size:13px;font-weight:400;opacity:.8}
+.b-poo{background:var(--poo);color:#fff;--shade:#4B2C17}
+.b-pee{background:#FFD23F;color:#3A2A00;--shade:#C99A00}
+
+.card{background:var(--surface);border-radius:20px;padding:16px;margin-bottom:14px;border:1px solid var(--line)}
+.daynav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.daynav{background:var(--tile);border-radius:16px;padding:6px}
+.daynav h2{font-family:Mitr,sans-serif;font-size:20px;font-weight:500;margin:0;text-align:center;flex:1}
+.nav{background:var(--surface)!important}
+.nav{width:44px;height:44px;border-radius:14px;border:1px solid var(--line);background:transparent;font-size:20px}
+.nav:disabled{opacity:.3;cursor:default}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stat{border-radius:16px;padding:12px 8px 10px;text-align:center;box-shadow:0 3px 0 var(--sh)}
+.stat b{display:block;font-family:Mitr,sans-serif;font-size:32px;font-weight:600;line-height:1.1}
+.stat span{font-size:13px;font-weight:500;opacity:.9}
+.s-poo{background:#7A4A2A;color:#fff;--sh:#4B2C17}
+.s-pee{background:#FFD23F;color:#3A2A00;--sh:#C99A00}
+.s-last{background:#2A7C83;color:#fff;--sh:#1B565B}
+.cnt{display:inline-block;min-width:30px;padding:2px 8px;border-radius:999px;font-family:Mitr,sans-serif;font-weight:500;font-size:15px}
+.cnt.p{background:#7A4A2A;color:#fff} .cnt.u{background:#FFD23F;color:#3A2A00}
+
+.list{list-style:none;margin:0;padding:0}
+.entry{border-top:1px solid var(--line)}
+.entry:first-child{border-top:none}
+.erow{width:100%;display:flex;align-items:center;gap:12px;padding:11px 2px;background:none;border:none;text-align:left}
+.etime{font-family:Mitr,sans-serif;font-size:17px;min-width:48px}
+.edot{width:22px;height:22px;border-radius:50%;flex:none;border:2px solid var(--line)}
+.einfo{flex:1;font-size:14px;color:var(--muted);line-height:1.35}
+.einfo strong{color:var(--ink);font-weight:600;font-size:15px}
+.eactions{display:none;gap:8px;padding:0 0 12px 60px}
+.entry.open .eactions{display:flex}
+.del{border:1px solid var(--warn);color:var(--warn);background:var(--warn-soft);border-radius:12px;padding:7px 14px;font-size:14px}
+.empty{color:var(--muted);text-align:center;padding:18px 8px;font-size:15px}
+
+
+.bars{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:120px}
+.bcol{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;background:none;border:none;padding:0}
+.bstack{display:flex;gap:3px;align-items:flex-end;height:92px}
+.bar{width:12px;border-radius:6px 6px 3px 3px;min-height:3px}
+.bar.p{background:var(--poo)} .bar.u{background:var(--pee)}
+.blab{font-size:12px;color:var(--muted)}
+.bcol.sel .blab{color:var(--ink);font-weight:600}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted);margin-top:10px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.note{font-size:13px;color:var(--muted);margin-top:4px}
+
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(8,24,27,.45);display:none;z-index:10}
+.scrim.show{display:block}
+.sheet{
+  position:fixed;left:0;right:0;bottom:0;z-index:11;max-width:520px;margin:0 auto;background:var(--surface);
+  border-radius:26px 26px 0 0;max-height:92%;overflow-y:auto;transform:translateY(105%);transition:transform .22s ease-out;
+  padding:18px 16px calc(16px + env(safe-area-inset-bottom,0px));
+}
+.sheet.show{transform:none}
+@media (prefers-reduced-motion:reduce){.sheet{transition:none}}
+.shead{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.shead .ico{font-size:34px}
+.shead h2{font-family:Mitr,sans-serif;font-weight:500;font-size:22px;margin:0;flex:1}
+.stime{font-family:Mitr,sans-serif;font-size:22px}
+.sheet[data-type="poo"]{--acc:var(--poo);--acc-soft:var(--poo-soft)}
+.sheet[data-type="pee"]{--acc:#E0AE00;--acc-soft:var(--pee-soft)}
+.grp{margin-top:22px}
+.grp h4{margin:0 0 10px;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;font-family:Mitr,sans-serif;font-size:18px;font-weight:500;
+  background:var(--acc-soft,var(--tile));border-left:6px solid var(--acc,var(--teal));padding:7px 12px;border-radius:4px 12px 12px 4px}
+.grp h4 span{font-family:"IBM Plex Sans Thai",sans-serif;font-weight:400;color:var(--muted);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:8px 14px;font-size:14.5px}
+.chip[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+:root[data-theme="dark"] .chip[aria-pressed="true"]{color:#08201F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip[aria-pressed="true"]{color:#08201F}}
+.swatches{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.sw{border:2px solid var(--line);background:transparent;border-radius:16px;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:5px;font-size:12.5px;line-height:1.25;text-align:center}
+.sw i{width:36px;height:36px;border-radius:50%;border:1px solid rgba(0,0,0,.12)}
+.sw[aria-pressed="true"]{border-color:var(--teal);box-shadow:inset 0 0 0 2px var(--teal)}
+.shapes{display:grid;grid-template-columns:1fr;gap:6px}
+.shape{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);background:transparent;border-radius:14px;padding:6px 10px;text-align:left;font-size:14px}
+.shape svg{width:64px;height:26px;flex:none;color:var(--poo)}
+.shape b{font-family:Mitr,sans-serif;font-weight:500;margin-right:4px}
+.shape[aria-pressed="true"]{border-color:var(--teal);background:var(--tile)}
+.alert{margin-top:12px;border-radius:12px;padding:10px 12px;font-size:14px;display:none}
+.alert.show{display:block}
+.alert.w{background:var(--warn-soft);color:var(--warn)}
+.alert.h{background:var(--pee-soft)}
+.sfoot{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:18px;position:sticky;bottom:0;background:var(--surface);padding-top:10px}
+.btn{border-radius:16px;padding:14px;font-size:17px;font-family:Mitr,sans-serif;font-weight:500;border:1.5px solid var(--line);background:transparent}
+.btn.save{background:var(--teal);border-color:var(--teal);color:#fff}
+.sec{display:inline-block;font-size:13.5px;font-weight:600;color:#fff;background:var(--teal);border-radius:999px;padding:3px 12px;margin:16px 0 8px}.secs .sec:first-child{margin-top:2px}
+:root[data-theme="dark"] .sec{color:#08201F}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .sec{color:#08201F}}
+.tbl-wrap{overflow-x:auto;margin:0 -4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-weight:600;text-align:left;color:var(--ink);background:var(--tile);font-size:13px;padding:8px 6px;border-bottom:2px solid var(--teal);white-space:nowrap}
+td{padding:9px 6px;border-bottom:1px solid var(--line);vertical-align:top;line-height:1.35}
+td.num,th.num{text-align:center}
+tbody tr.row{cursor:pointer}
+tbody tr.row:hover td{background:var(--tile)}
+tr.sel td{background:var(--tile)}
+.t-time{font-family:Mitr,sans-serif;font-size:15px;white-space:nowrap}
+.dot{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid var(--line);vertical-align:-1px;margin-right:5px}
+.flag{color:var(--warn);font-weight:500}
+.dot.big{width:22px;height:22px;margin:0;vertical-align:middle;border:1.5px solid rgba(0,0,0,.18)}
+.dot.big.warn{box-shadow:0 0 0 2.5px var(--surface),0 0 0 4.5px var(--warn)}
+/* auth */
+.auth{position:fixed;inset:0;z-index:30;background:var(--tile);display:none;overflow-y:auto;
+  padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.auth.show{display:grid;place-items:center}
+.abox{width:100%;max-width:400px;background:var(--surface);border:1px solid var(--line);border-radius:24px;overflow:hidden}
+.ahead{background:#2A7C83;color:#fff;padding:22px 20px;text-align:center}
+.ahead .logo{display:inline-grid;place-items:center;width:60px;height:60px;border-radius:18px;background:#FFD23F;font-size:34px;margin-bottom:8px}
+.ahead h2{font-family:Mitr,sans-serif;font-size:26px;font-weight:600;margin:0}
+.ahead p{margin:4px 0 0;font-size:14px;opacity:.9}
+.abody{padding:20px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--tile);border-radius:14px;padding:4px;margin-bottom:18px}
+.tab{border:none;background:transparent;border-radius:11px;padding:10px;font-family:Mitr,sans-serif;font-size:16px;color:var(--muted)}
+.tab[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.field{display:block;margin-bottom:14px}
+.field span{display:block;font-size:14px;font-weight:600;margin-bottom:6px}
+.field input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px 14px}
+.field input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px color-mix(in srgb,var(--teal) 25%,transparent)}
+.abtn{width:100%;border:none;border-radius:14px;padding:14px;background:#2A7C83;color:#fff;font-family:Mitr,sans-serif;font-size:18px;font-weight:500;box-shadow:0 3px 0 #1B565B}
+.abtn:disabled{opacity:.6}
+.amsg{min-height:22px;margin-top:12px;font-size:14px;text-align:center}
+.amsg.err{color:var(--warn)} .amsg.ok{color:var(--ok)}
+.acfg{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:12px;font-size:14px;margin-bottom:14px}
+.userbar{display:none;align-items:center;gap:8px;margin-top:6px;justify-content:flex-end}
+.userbar.show{display:flex}
+.userbar button{border:1px solid rgba(255,255,255,.5);background:transparent;color:#fff;border-radius:10px;padding:4px 10px;font-size:13px}
+.hright{display:flex;flex-direction:column;align-items:flex-end}
+.delrow td{padding:4px 6px 12px;border-bottom:1px solid var(--line)}
+.card h3{font-family:Mitr,sans-serif;font-size:19px;font-weight:500;margin:0 0 14px;border-left:6px solid var(--teal);padding:2px 0 2px 12px;line-height:1.3}
+.badge{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 14px;font-family:Mitr,sans-serif;font-size:17px;font-weight:500;margin-bottom:10px}
+.lv0{background:var(--ok-soft);color:var(--ok)} .lv1{background:var(--mid-soft);color:var(--mid)} .lv2{background:var(--warn-soft);color:var(--warn)} .lvn{background:var(--tile);color:var(--muted)}
+.alist{list-style:none;margin:0;padding:0}
+.alist li{display:flex;gap:10px;padding:7px 0;border-top:1px solid var(--line);font-size:14.5px}
+.alist li:first-child{border-top:none}
+.alist i{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px}
+.i0{background:var(--ok)} .i1{background:var(--mid)} .i2{background:var(--warn)}
+.fine{font-size:12.5px;color:var(--muted);margin-top:10px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-size:15px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1><span class="logo" aria-hidden="true">🚽</span>บันทึกขับถ่าย</h1>
+      <div class="sync" id="sync">เก็บในเครื่องนี้</div>
+    </div>
+    <div class="hright">
+      <div class="clock" id="clock"></div>
+      <div class="userbar" id="userbar"><button id="logout">ออกจากระบบ</button></div>
+    </div>
+  </header>
+
+  <div class="col col-l">
+  <div class="big o1">
+    <button class="bigbtn b-poo" data-type="poo"><span class="ico">💩</span>ขี้<small>แตะเพื่อบันทึก</small></button>
+    <button class="bigbtn b-pee" data-type="pee"><span class="ico">💧</span>เยี่ยว<small>แตะเพื่อบันทึก</small></button>
+  </div>
+
+  <section class="card assess o2">
+    <h3>สรุปประเมิน 7 วันล่าสุด</h3>
+    <div id="assess"></div>
+  </section>
+
+  <section class="card week o5">
+    <h3>7 วันล่าสุด</h3>
+    <div class="bars" id="bars"></div>
+    <div class="legend"><span><i style="background:var(--poo)"></i>ขี้</span><span><i style="background:var(--pee)"></i>เยี่ยว</span></div>
+    <div class="note" id="weekNote"></div>
+  </section>
+  </div>
+
+  <div class="col col-r">
+  <section class="card o3">
+    <div class="daynav">
+      <button class="nav" id="prev" aria-label="วันก่อนหน้า">‹</button>
+      <h2 id="dayTitle"></h2>
+      <button class="nav" id="next" aria-label="วันถัดไป">›</button>
+    </div>
+    <div class="stats">
+      <div class="stat s-poo"><b id="cPoo">0</b><span>ขี้ (ครั้ง)</span></div>
+      <div class="stat s-pee"><b id="cPee">0</b><span>เยี่ยว (ครั้ง)</span></div>
+      <div class="stat s-last"><b id="cLast">–</b><span id="cLastLab">ครั้งล่าสุด</span></div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>เวลา</th><th class="num">ประเภท</th><th class="num">สี</th><th>ลักษณะ</th><th>อาการ</th></tr></thead>
+      <tbody id="list"></tbody>
+    </table></div>
+  </section>
+
+  <section class="card daily o4">
+    <h3>ตารางรายวัน (14 วัน)</h3>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>วันที่</th><th class="num">💩</th><th class="num">💧</th><th>ลักษณะขี้</th><th>สิ่งที่พบ</th></tr></thead>
+      <tbody id="daily"></tbody>
+    </table></div>
+    <div class="fine">แตะแถวเพื่อดูรายละเอียดวันนั้น</div>
+  </section>
+  </div>
+</div>
+
+<div class="auth" id="auth">
+  <div class="abox">
+    <div class="ahead"><div class="logo" aria-hidden="true">🚽</div><h2>บันทึกขับถ่าย</h2><p>เข้าสู่ระบบเพื่อใช้ข้อมูลเดียวกันได้ทุกเครื่อง</p></div>
+    <div class="abody">
+      <div class="acfg" id="acfg" style="display:none">ยังไม่ได้ใส่ค่า Supabase ในไฟล์ (SUPABASE_URL / SUPABASE_ANON_KEY) เลยยังเข้าสู่ระบบไม่ได้<br><button class="tab" id="useLocal" style="margin-top:8px;background:var(--surface);color:var(--ink)">ใช้แบบเก็บในเครื่องนี้ไปก่อน</button></div>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tLogin" aria-selected="true">เข้าสู่ระบบ</button>
+        <button class="tab" role="tab" id="tSignup" aria-selected="false">สมัครสมาชิก</button>
+      </div>
+      <form id="aform" novalidate>
+        <label class="field"><span>อีเมล</span><input id="aEmail" type="email" autocomplete="email" inputmode="email" required></label>
+        <label class="field"><span>รหัสผ่าน</span><input id="aPass" type="password" autocomplete="current-password" minlength="6" required></label>
+        <button class="abtn" id="aSubmit" type="submit">เข้าสู่ระบบ</button>
+        <div class="amsg" id="aMsg" role="status"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
+  <div class="shead"><span class="ico" id="sIco"></span><h2 id="sTitle"></h2><span class="stime" id="sTime"></span></div>
+  <div class="grp"><h4>เวลา</h4><div class="chips" id="timeChips"></div></div>
+  <div id="groups"></div>
+  <div class="alert w" id="alertW"></div>
+  <div class="alert h" id="alertH"></div>
+  <div class="sfoot">
+    <button class="btn" id="cancel">ยกเลิก</button>
+    <button class="btn save" id="save">บันทึก</button>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+/* ===== ตั้งค่า Supabase (ใส่ค่าจากหน้า Project Settings → API) ===== */
+const SUPABASE_URL = 'https://trgqcdwyitcgubiqxrig.supabase.co';        // เช่น https://xxxxxxxx.supabase.co
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRyZ3FjZHd5aXRjZ3ViaXF4cmlnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzkzMDEsImV4cCI6MjEwNTgxNTMwMX0.fuEyG0wkamloqIy_J_z8V3mtxtro-KeLeA_HQ3kL4xk';   // anon public key
+/* ================================================================ */
+const BRISTOL_SVG = {
+  1:'<circle cx="8" cy="14" r="5"/><circle cx="21" cy="11" r="4.5"/><circle cx="33" cy="15" r="5"/><circle cx="45" cy="11" r="4"/><circle cx="55" cy="15" r="4"/>',
+  2:'<circle cx="10" cy="13" r="7"/><circle cx="20" cy="11" r="7.5"/><circle cx="31" cy="13" r="7"/><circle cx="41" cy="11" r="7.5"/><circle cx="51" cy="13" r="7"/>',
+  3:'<rect x="3" y="5" width="54" height="15" rx="7.5"/><path d="M14 5v5M22 20v-5M31 5v6M40 20v-6M48 5v5" stroke="var(--surface)" stroke-width="2"/>',
+  4:'<rect x="3" y="6" width="54" height="13" rx="6.5"/>',
+  5:'<ellipse cx="11" cy="14" rx="9" ry="6"/><ellipse cx="30" cy="12" rx="9" ry="6.5"/><ellipse cx="49" cy="14" rx="9" ry="6"/>',
+  6:'<path d="M4 17c2-6 6-9 9-6 2-5 7-6 10-2 3-4 8-4 10 0 3-3 8-3 10 1 3-2 8 0 9 5 2 5-3 6-6 4-3 3-8 3-10 0-3 3-8 3-11 0-3 3-8 3-10 0-4 2-9 2-11-2z"/>',
+  7:'<ellipse cx="30" cy="18" rx="27" ry="5"/><circle cx="14" cy="8" r="2"/><circle cx="40" cy="6" r="2.3"/><circle cx="27" cy="10" r="1.6"/>'
+};
+const TYPES = {
+  poo:{ name:'ขี้', ico:'💩', groups:[
+    {key:'color', label:'สี', kind:'swatch', options:[
+      {k:'brown',n:'น้ำตาล',c:'#8B5A2B'},{k:'dark',n:'น้ำตาลเข้ม',c:'#553214'},{k:'light',n:'น้ำตาลอ่อน',c:'#B98A4E'},
+      {k:'yellow',n:'เหลือง',c:'#D6AE38'},{k:'green',n:'เขียว',c:'#5E7D32'},{k:'black',n:'ดำ',c:'#1F1C1C',warn:'อุจจาระสีดำ'},
+      {k:'red',n:'แดง / มีเลือด',c:'#B3322B',warn:'อุจจาระสีแดงหรือมีเลือด'},{k:'pale',n:'ซีด / ขาวเทา',c:'#D2CCBA',warn:'อุจจาระสีซีด'}]},
+    {key:'shape', label:'ลักษณะ', kind:'shape', options:[
+      {k:'1',n:'เป็นเม็ดแข็ง แยกกัน',tag:'ท้องผูกมาก'},{k:'2',n:'เป็นท่อน แต่เป็นก้อนขรุขระ',tag:'ท้องผูก'},
+      {k:'3',n:'เป็นท่อน ผิวมีรอยแตก',tag:'ปกติ'},{k:'4',n:'เป็นท่อน นิ่ม ผิวเรียบ',tag:'ดีที่สุด'},
+      {k:'5',n:'ก้อนนิ่ม ขอบชัด',tag:'ค่อนข้างเหลว'},{k:'6',n:'เละ ขอบไม่ชัด',tag:'เหลว'},{k:'7',n:'เป็นน้ำ ไม่มีเนื้อ',tag:'ท้องเสีย'}]},
+    {key:'extra', label:'อาการเพิ่มเติม', kind:'multi', options:[
+      {sec:'ตอนถ่าย',k:'strain',n:'เบ่งยาก'},{sec:'ตอนถ่าย',k:'incomplete',n:'ถ่ายไม่สุด'},{sec:'ตอนถ่าย',k:'urgent',n:'ปวดกะทันหัน'},
+      {sec:'ตอนถ่าย',k:'incont',n:'กลั้นไม่อยู่'},{sec:'ตอนถ่าย',k:'long',n:'นั่งนานกว่าจะออก'},{sec:'ตอนถ่าย',k:'anal',n:'เจ็บ/แสบก้น'},
+      {sec:'ตอนถ่าย',k:'laxative',n:'ใช้ยาระบาย'},
+      {sec:'สิ่งที่เห็น',k:'mucus',n:'มีมูก'},{sec:'สิ่งที่เห็น',k:'bloodpaper',n:'เลือดติดกระดาษ'},{sec:'สิ่งที่เห็น',k:'undigested',n:'มีเศษอาหาร'},
+      {sec:'สิ่งที่เห็น',k:'oily',n:'มีมันลอย'},{sec:'สิ่งที่เห็น',k:'float',n:'ลอยน้ำ'},{sec:'สิ่งที่เห็น',k:'thin',n:'ลำเล็กผิดปกติ'},
+      {sec:'สิ่งที่เห็น',k:'smell',n:'กลิ่นแรงผิดปกติ'},
+      {sec:'ท้อง',k:'pain',n:'ปวดท้อง'},{sec:'ท้อง',k:'cramp',n:'ปวดบิด'},{sec:'ท้อง',k:'bloat',n:'ท้องอืด'},
+      {sec:'ท้อง',k:'gas',n:'ผายลมบ่อย'},{sec:'ท้อง',k:'heartburn',n:'แสบร้อนกลางอก'},
+      {sec:'ทั้งตัว',k:'fever',n:'มีไข้'},{sec:'ทั้งตัว',k:'nausea',n:'คลื่นไส้'},{sec:'ทั้งตัว',k:'vomit',n:'อาเจียน'},
+      {sec:'ทั้งตัว',k:'fatigue',n:'อ่อนเพลีย'},{sec:'ทั้งตัว',k:'appetite',n:'เบื่ออาหาร'},{sec:'ทั้งตัว',k:'dizzy',n:'หน้ามืด'}]}
+  ]},
+  pee:{ name:'เยี่ยว', ico:'💧', groups:[
+    {key:'color', label:'สี', kind:'swatch', options:[
+      {k:'clear',n:'ใส',c:'#EEF4EF'},{k:'pale',n:'เหลืองอ่อน',c:'#F4E6A0'},{k:'yellow',n:'เหลือง',c:'#ECCD52'},
+      {k:'dark',n:'เหลืองเข้ม',c:'#D99A1E',hint:'ปัสสาวะเหลืองเข้ม มักหมายถึงดื่มน้ำน้อยไป ลองดื่มน้ำเพิ่ม'},
+      {k:'amber',n:'อำพัน / น้ำตาล',c:'#9E5E1A',warn:'ปัสสาวะสีน้ำตาล'},{k:'orange',n:'ส้ม',c:'#E07A2E'},
+      {k:'red',n:'ชมพู / แดง',c:'#C9544E',warn:'ปัสสาวะสีชมพูหรือแดง'},{k:'cloudy',n:'ขาวขุ่น',c:'#DAD6C6'}]},
+    {key:'look', label:'ลักษณะ', kind:'single', options:[{k:'normal',n:'ใส ปกติ'},{k:'cloudy',n:'ขุ่น'},{k:'foamy',n:'มีฟองมาก'}]},
+    {key:'amount', label:'ปริมาณ', kind:'single', options:[{k:'low',n:'น้อย'},{k:'mid',n:'ปกติ'},{k:'high',n:'มาก'}]},
+    {key:'extra', label:'อาการเพิ่มเติม', kind:'multi', options:[
+      {sec:'ตอนเยี่ยว',k:'burn',n:'แสบขัด'},{sec:'ตอนเยี่ยว',k:'urgent',n:'ปวดกะทันหัน'},{sec:'ตอนเยี่ยว',k:'frequent',n:'ปวดบ่อย'},
+      {sec:'ตอนเยี่ยว',k:'weak',n:'ไม่พุ่ง / ต้องเบ่ง'},{sec:'ตอนเยี่ยว',k:'drip',n:'ไม่สุด / หยด'},{sec:'ตอนเยี่ยว',k:'hesitant',n:'รอนานกว่าจะออก'},
+      {sec:'ตอนเยี่ยว',k:'leak',n:'เล็ด / กลั้นไม่อยู่'},{sec:'ตอนเยี่ยว',k:'night',n:'ตื่นมาเยี่ยวกลางคืน'},
+      {sec:'สิ่งที่เห็น',k:'smell',n:'กลิ่นแรง'},{sec:'สิ่งที่เห็น',k:'sediment',n:'มีตะกอน / เม็ดทราย'},{sec:'สิ่งที่เห็น',k:'blood',n:'เห็นเลือดปน'},
+      {sec:'ปวด / เจ็บ',k:'pelvic',n:'ปวดท้องน้อย'},{sec:'ปวด / เจ็บ',k:'flank',n:'ปวดหลัง / บั้นเอว'},{sec:'ปวด / เจ็บ',k:'itch',n:'คัน / ระคายเคือง'},
+      {sec:'ทั้งตัว',k:'fever',n:'มีไข้'},{sec:'ทั้งตัว',k:'chills',n:'หนาวสั่น'},{sec:'ทั้งตัว',k:'thirst',n:'กระหายน้ำมาก'},
+      {sec:'ทั้งตัว',k:'swelling',n:'บวม (หน้า/ขา)'},{sec:'ทั้งตัว',k:'fatigue',n:'อ่อนเพลีย'}]}
+  ]}
+};
+const TIME_OFFSETS=[{m:0,n:'ตอนนี้'},{m:15,n:'15 นาทีก่อน'},{m:30,n:'30 นาทีก่อน'},{m:60,n:'1 ชม.ก่อน'},{m:120,n:'2 ชม.ก่อน'}];
+const TH_DAYS=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสฯ','ศุกร์','เสาร์'];
+const TH_DAYS_S=['อา','จ','อ','พ','พฤ','ศ','ส'];
+const TH_MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const LS='potty-tracker-v1';
+
+const $=id=>document.getElementById(id);
+const pad=n=>String(n).padStart(2,'0');
+const dayKey=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const hm=t=>{const d=new Date(t);return `${pad(d.getHours())}:${pad(d.getMinutes())}`};
+const keyToDate=k=>{const [y,m,d]=k.split('-').map(Number);return new Date(y,m-1,d)};
+const findOpt=(type,g,k)=>TYPES[type].groups.find(x=>x.key===g)?.options.find(o=>o.k===k);
+
+let days={};           // { 'YYYY-MM-DD': [entries] }
+let viewDay=dayKey(new Date());
+let db=null, uid=null, mode='local', sb=null, supaUser=null;
+let draft=null, openId=null;
+const writeChains={};
+
+const lsKey=()=>supaUser?`${LS}:${supaUser.id}`:LS;
+function readLocal(key){ try{ return JSON.parse(localStorage.getItem(key)||'{}')||{} }catch(e){ return {} } }
+days=readLocal(LS);
+function cacheLocal(){ try{ localStorage.setItem(lsKey(),JSON.stringify(days)) }catch(e){} }
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),1800)}
+
+/* ---------- persistence ---------- */
+function persistDay(k){
+  cacheLocal();
+  if(mode==='supa') return persistSupa(k);
+  if(mode!=='db') return;
+  const ref=db.doc(`data/users/${uid}/${k}`);
+  const body=()=>({date:k,entries:(days[k]||[]).slice()});
+  writeChains[k]=(writeChains[k]||Promise.resolve()).then(async()=>{
+    try{
+      if((days[k]||[]).length) await ref.set(body()); else await ref.delete();
+    }catch(e){
+      if(e&&e.code==='unavailable'){ await new Promise(r=>setTimeout(r,600+Math.random()*800)); try{ (days[k]||[]).length?await ref.set(body()):await ref.delete() }catch(_){ toast('บันทึกขึ้นระบบไม่สำเร็จ ลองใหม่อีกครั้ง') } }
+      else if(e&&e.code==='quota_exceeded') toast('พื้นที่เก็บข้อมูลเต็ม ลบวันเก่าที่ไม่ใช้ออกก่อน');
+      else toast('บันทึกขึ้นระบบไม่สำเร็จ ข้อมูลยังอยู่ในเครื่องนี้');
+    }
+  });
+}
+
+function persistSupa(k){
+  writeChains[k]=(writeChains[k]||Promise.resolve()).then(async()=>{
+    const L=(days[k]||[]).slice();
+    const q=L.length
+      ? sb.from('app_storage').upsert({user_id:supaUser.id,key:'day:'+k,value:{date:k,entries:L},updated_at:new Date().toISOString()},{onConflict:'user_id,key'})
+      : sb.from('app_storage').delete().eq('user_id',supaUser.id).eq('key','day:'+k);
+    const {error}=await q;
+    if(error){ $('sync').textContent='ซิงก์ไม่สำเร็จ ข้อมูลยังอยู่ในเครื่อง'; toast('บันทึกขึ้นระบบไม่สำเร็จ ลองใหม่อีกครั้ง') }
+    else $('sync').textContent='ซิงก์แล้ว · '+supaUser.email;
+  });
+}
+
+/* ---------- Supabase login ---------- */
+let authMode='login';
+function showAuth(){ $('auth').classList.add('show'); $('userbar').classList.remove('show') }
+function hideAuth(){ $('auth').classList.remove('show') }
+function setAuthMode(m){
+  authMode=m;
+  $('tLogin').setAttribute('aria-selected',m==='login'); $('tSignup').setAttribute('aria-selected',m==='signup');
+  $('aSubmit').textContent=m==='login'?'เข้าสู่ระบบ':'สมัครสมาชิก';
+  $('aPass').autocomplete=m==='login'?'current-password':'new-password';
+  $('aMsg').textContent=''; $('aMsg').className='amsg';
+}
+function thErr(msg=''){
+  if(/Invalid login credentials/i.test(msg)) return 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
+  if(/already registered|already exists/i.test(msg)) return 'อีเมลนี้สมัครไว้แล้ว ลองเข้าสู่ระบบแทน';
+  if(/at least 6|Password should/i.test(msg)) return 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร';
+  if(/valid email|invalid format/i.test(msg)) return 'รูปแบบอีเมลไม่ถูกต้อง';
+  if(/Email not confirmed/i.test(msg)) return 'ยังไม่ได้ยืนยันอีเมล ตรวจกล่องจดหมายก่อน';
+  if(/fetch|network/i.test(msg)) return 'เชื่อมต่อไม่ได้ ตรวจอินเทอร์เน็ตแล้วลองอีกครั้ง';
+  return msg||'เกิดข้อผิดพลาด ลองอีกครั้ง';
+}
+async function submitAuth(ev){
+  ev.preventDefault();
+  const email=$('aEmail').value.trim(), password=$('aPass').value;
+  const msg=$('aMsg');
+  if(!email||!password){msg.className='amsg err';msg.textContent='กรอกอีเมลและรหัสผ่านให้ครบ';return}
+  $('aSubmit').disabled=true; msg.className='amsg'; msg.textContent='กำลังดำเนินการ…';
+  try{
+    const r=authMode==='login'?await sb.auth.signInWithPassword({email,password}):await sb.auth.signUp({email,password});
+    if(r.error) throw r.error;
+    if(r.data.session) await onLogin(r.data.session.user);
+    else{ msg.className='amsg ok'; msg.textContent='สมัครแล้ว ตรวจอีเมลเพื่อยืนยัน แล้วกลับมาเข้าสู่ระบบ'; setAuthMode('login') }
+  }catch(e){ msg.className='amsg err'; msg.textContent=thErr(e.message) }
+  $('aSubmit').disabled=false;
+}
+async function onLogin(user){
+  supaUser=user; mode='supa'; hideAuth();
+  $('userbar').classList.add('show');
+  $('sync').textContent='กำลังโหลดข้อมูล…';
+  days=readLocal(lsKey()); render();
+  const {data,error}=await sb.from('app_storage').select('key,value').eq('user_id',user.id).like('key','day:%');
+  if(error){ $('sync').textContent='โหลดจากระบบไม่สำเร็จ แสดงข้อมูลในเครื่อง'; return }
+  const cloud={};
+  (data||[]).forEach(r=>{const v=r.value; if(v&&Array.isArray(v.entries)) cloud[v.date||r.key.slice(4)]=v.entries});
+  const legacy=readLocal(LS); const lk=Object.keys(legacy).filter(k=>legacy[k]&&legacy[k].length);
+  if(!Object.keys(cloud).length&&lk.length&&!localStorage.getItem(LS+':imported:'+user.id)){
+    if(confirm(`พบข้อมูลเดิมในเครื่องนี้ ${lk.length} วัน ต้องการนำเข้าบัญชี ${user.email} ไหม?`)){
+      const rows=lk.map(k=>({user_id:user.id,key:'day:'+k,value:{date:k,entries:legacy[k]},updated_at:new Date().toISOString()}));
+      const up=await sb.from('app_storage').upsert(rows,{onConflict:'user_id,key'});
+      if(!up.error){ lk.forEach(k=>cloud[k]=legacy[k]); toast(`นำเข้าข้อมูล ${lk.length} วันแล้ว`) }
+      else toast('นำเข้าไม่สำเร็จ ลองใหม่ภายหลัง');
+    }
+    try{localStorage.setItem(LS+':imported:'+user.id,'1')}catch(e){}
+  }
+  days=cloud; cacheLocal(); render();
+  $('sync').textContent='ซิงก์แล้ว · '+user.email;
+}
+async function logout(){
+  if(sb) await sb.auth.signOut();
+  supaUser=null; mode='local'; days={}; render();
+  $('aPass').value=''; setAuthMode('login'); showAuth();
+}
+async function initSupabase(){
+  $('tLogin').onclick=()=>setAuthMode('login'); $('tSignup').onclick=()=>setAuthMode('signup');
+  $('aform').addEventListener('submit',submitAuth); $('logout').onclick=logout;
+  if(!SUPABASE_URL||!SUPABASE_ANON_KEY||!window.supabase){
+    $('acfg').style.display='block'; $('aform').style.display='none'; document.querySelector('.tabs').style.display='none';
+    $('useLocal').onclick=()=>{hideAuth(); $('sync').textContent='เก็บในเครื่องนี้'};
+    showAuth(); return;
+  }
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  const {data:{session}}=await sb.auth.getSession();
+  if(session) await onLogin(session.user); else showAuth();
+  sb.auth.onAuthStateChange((ev,sess)=>{ if(ev==='SIGNED_OUT'&&supaUser){ supaUser=null; mode='local'; days={}; render(); showAuth() } });
+}
+
+async function initDb(){
+  if(!window.claude||!window.claude.use) return;
+  try{
+    const [d,u]=await Promise.all([claude.use('db'),claude.use('user')]);
+    if(!d||!u) return;
+    const id=await u.id();
+    if(!id) return;
+    db=d; uid=id; mode='db';
+    $('sync').textContent='กำลังซิงก์…';
+    db.collection(`data/users/${uid}`).orderBy('date','desc').limit(400).onSnapshot(snap=>{
+      const fresh={};
+      snap.docs.forEach(doc=>{const v=doc.data(); if(v&&Array.isArray(v.entries)) fresh[v.date||doc.id]=v.entries.slice()});
+      days=fresh; cacheLocal();
+      $('sync').textContent='ซิงก์ทุกอุปกรณ์';
+      render();
+    },err=>{
+      mode='local'; $('sync').textContent='เก็บในเครื่องนี้';
+    });
+  }catch(e){ mode='local' }
+}
+
+/* ---------- render ---------- */
+function describe(e){
+  const T=TYPES[e.type]; const parts=[];
+  T.groups.forEach(g=>{
+    const v=e[g.key]; if(v==null||(Array.isArray(v)&&!v.length)) return;
+    if(g.kind==='multi') parts.push(v.map(k=>findOpt(e.type,g.key,k)?.n).filter(Boolean).join(', '));
+    else if(g.kind==='shape'){const o=findOpt(e.type,'shape',v); if(o) parts.push(`แบบ ${v} · ${o.tag}`)}
+    else{const o=findOpt(e.type,g.key,v); if(o) parts.push(o.n)}
+  });
+  return parts.join(' / ');
+}
+function render(){
+  const today=dayKey(new Date());
+  const d=keyToDate(viewDay);
+  const label=`${TH_DAYS[d.getDay()]} ${d.getDate()} ${TH_MON[d.getMonth()]}`;
+  $('dayTitle').textContent= viewDay===today?`วันนี้ · ${d.getDate()} ${TH_MON[d.getMonth()]}`:label;
+  $('next').disabled = viewDay>=today;
+
+  const list=(days[viewDay]||[]).slice().sort((a,b)=>b.t-a.t);
+  $('cPoo').textContent=list.filter(e=>e.type==='poo').length;
+  $('cPee').textContent=list.filter(e=>e.type==='pee').length;
+  if(viewDay===today){
+    const all=Object.values(days).flat().sort((a,b)=>b.t-a.t);
+    const last=all[0];
+    if(last){const mins=Math.max(0,Math.round((Date.now()-last.t)/60000));
+      $('cLast').textContent=mins<60?`${mins} น.`:`${Math.floor(mins/60)}:${pad(mins%60)}`;
+      $('cLastLab').textContent=mins<60?'นาทีที่แล้ว':'ชม. ที่แล้ว';
+    }else{$('cLast').textContent='–';$('cLastLab').textContent='ครั้งล่าสุด'}
+  }else{ $('cLast').textContent=list.length; $('cLastLab').textContent='รวมทั้งวัน' }
+
+  const ul=$('list'); ul.innerHTML='';
+  if(!list.length){ul.innerHTML=`<tr><td colspan="5" class="empty">${viewDay===today?'ยังไม่มีบันทึกวันนี้ แตะปุ่มด้านบนเพื่อเริ่ม':'ไม่มีบันทึกในวันนี้'}</td></tr>`}
+  list.forEach(e=>{
+    const T=TYPES[e.type]; const col=findOpt(e.type,'color',e.color);
+    let look='–';
+    if(e.type==='poo'&&e.shape){look=`${e.shape} · ${findOpt('poo','shape',e.shape).tag}`}
+    if(e.type==='pee'){const l=[e.look&&findOpt('pee','look',e.look)?.n,e.amount&&('ปริมาณ'+findOpt('pee','amount',e.amount)?.n)].filter(Boolean);if(l.length)look=l.join(', ')}
+    const ex=(e.extra||[]).map(k=>findOpt(e.type,'extra',k)?.n).filter(Boolean).join(', ')||'–';
+    const tr=document.createElement('tr'); tr.className='row'+(openId===e.id?' sel':'');
+    tr.innerHTML=`<td class="t-time">${hm(e.t)}</td><td class="num" style="font-size:20px" aria-label="${T.name}">${T.ico}</td>
+      <td class="num">${col?`<span class="dot big${col.warn?' warn':''}" style="background:${col.c}" title="${col.n}" role="img" aria-label="${col.n}"></span>`:'–'}</td>
+      <td>${look}</td><td>${ex}</td>`;
+    tr.onclick=()=>{openId=openId===e.id?null:e.id;render()};
+    ul.appendChild(tr);
+    if(openId===e.id){
+      const d=document.createElement('tr'); d.className='delrow';
+      d.innerHTML='<td colspan="5"><button class="del">ลบรายการนี้</button></td>';
+      d.querySelector('.del').onclick=()=>{
+        days[viewDay]=(days[viewDay]||[]).filter(x=>x.id!==e.id);
+        if(!days[viewDay].length) delete days[viewDay];
+        openId=null; persistDay(viewDay); render(); toast('ลบแล้ว');
+      };
+      ul.appendChild(d);
+    }
+  });
+
+  // daily table
+  const dt=$('daily'); dt.innerHTML='';
+  for(let i=0;i<14;i++){
+    const x=new Date(); x.setDate(x.getDate()-i); const k=dayKey(x); const L=days[k]||[];
+    const P=L.filter(e=>e.type==='poo'), U=L.filter(e=>e.type==='pee');
+    const sh=P.map(e=>+e.shape).filter(Boolean);
+    const shTxt=sh.length?(Math.min(...sh)===Math.max(...sh)?`แบบ ${sh[0]}`:`แบบ ${Math.min(...sh)}–${Math.max(...sh)}`):'–';
+    const found=new Set();
+    L.forEach(e=>{const c=findOpt(e.type,'color',e.color); if(c&&(c.warn)) found.add((e.type==='poo'?'ขี้':'เยี่ยว')+c.n);
+      (e.extra||[]).forEach(k=>{if(['mucus','burn','bloodpaper','blood','fever','vomit','flank','chills'].includes(k)) found.add(findOpt(e.type,'extra',k).n)})});
+    if(sh.filter(v=>v>=6).length>=3) found.add('ถ่ายเหลวบ่อย');
+    const tr=document.createElement('tr'); tr.className='row'+(k===viewDay?' sel':'');
+    tr.innerHTML=`<td style="white-space:nowrap">${i===0?'วันนี้':TH_DAYS_S[x.getDay()]+' '+x.getDate()+' '+TH_MON[x.getMonth()]}</td>
+      <td class="num">${L.length?`<span class="cnt p">${P.length}</span>`:'–'}</td><td class="num">${L.length?`<span class="cnt u">${U.length}</span>`:'–'}</td><td>${shTxt}</td>
+      <td class="${found.size?'flag':''}">${found.size?[...found].join(', '):(L.length?'ปกติ':'')}</td>`;
+    tr.onclick=()=>{viewDay=k;openId=null;render();document.querySelector('.daynav').scrollIntoView({behavior:'smooth',block:'start'})};
+    dt.appendChild(tr);
+  }
+
+  renderAssess();
+
+  // week
+  const bars=$('bars'); bars.innerHTML='';
+  const wk=[]; for(let i=6;i>=0;i--){const x=new Date();x.setDate(x.getDate()-i);wk.push(x)}
+  const counts=wk.map(x=>{const L=days[dayKey(x)]||[];return{p:L.filter(e=>e.type==='poo').length,u:L.filter(e=>e.type==='pee').length}});
+  const max=Math.max(4,...counts.map(c=>Math.max(c.p,c.u)));
+  wk.forEach((x,i)=>{
+    const k=dayKey(x), c=counts[i];
+    const b=document.createElement('button'); b.className='bcol'+(k===viewDay?' sel':'');
+    b.setAttribute('aria-label',`${TH_DAYS[x.getDay()]} ขี้ ${c.p} เยี่ยว ${c.u}`);
+    b.innerHTML=`<div class="bstack"><div class="bar p" style="height:${c.p/max*92}px"></div><div class="bar u" style="height:${c.u/max*92}px"></div></div><span class="blab">${TH_DAYS_S[x.getDay()]}</span>`;
+    b.onclick=()=>{viewDay=k;openId=null;render()};
+    bars.appendChild(b);
+  });
+  const tp=counts.reduce((s,c)=>s+c.p,0), tu=counts.reduce((s,c)=>s+c.u,0);
+  $('weekNote').textContent=(tp||tu)?`เฉลี่ยต่อวัน: ขี้ ${(tp/7).toFixed(1)} ครั้ง · เยี่ยว ${(tu/7).toFixed(1)} ครั้ง`:'';
+}
+
+/* ---------- assessment ---------- */
+function assess(){
+  const keys=[]; for(let i=0;i<7;i++){const x=new Date();x.setDate(x.getDate()-i);keys.push(dayKey(x))}
+  const E=keys.flatMap(k=>days[k]||[]);
+  if(!E.length) return {lv:-1,items:[]};
+  const items=[]; const add=(lv,text)=>items.push({lv,text});
+  const P=E.filter(e=>e.type==='poo'), U=E.filter(e=>e.type==='pee');
+  const cnt=(arr,f)=>arr.filter(f).length;
+
+  // stool colour
+  const red=cnt(P,e=>e.color==='red'), black=cnt(P,e=>e.color==='black'), pale=cnt(P,e=>e.color==='pale');
+  if(red) add(red>=2?2:1,`อุจจาระสีแดงหรือมีเลือด ${red} ครั้ง ${red>=2?'เกิดซ้ำ ควรไปพบแพทย์':'ถ้าไม่ได้กินอาหารสีแดง (เช่น แก้วมังกรแดง บีทรูท) และเกิดซ้ำ ควรพบแพทย์'}`);
+  if(black) add(black>=2?2:1,`อุจจาระสีดำ ${black} ครั้ง ${black>=2?'เกิดซ้ำ ควรไปพบแพทย์ (อาจมีเลือดออกในทางเดินอาหารส่วนบน)':'อาจเกิดจากยาธาตุเหล็กหรือยาบางชนิด ถ้าไม่ได้กินและเกิดซ้ำ ควรพบแพทย์'}`);
+  if(pale) add(pale>=2?2:1,`อุจจาระสีซีด ${pale} ครั้ง ${pale>=2?'เกิดซ้ำ ควรพบแพทย์เพื่อตรวจตับและท่อน้ำดี':'สังเกตต่อ ถ้าเป็นอีกควรพบแพทย์'}`);
+
+  // diarrhoea / constipation
+  const loosePerDay=keys.map(k=>cnt(days[k]||[],e=>e.type==='poo'&&+e.shape>=6));
+  const looseDays=loosePerDay.filter(n=>n>=3).length;
+  if(looseDays) add(looseDays>=2||Math.max(...loosePerDay)>=6?2:1,`ถ่ายเหลวตั้งแต่ 3 ครั้งต่อวัน ${looseDays} วัน ดื่มน้ำ/เกลือแร่ให้พอ${looseDays>=2?' ถ้าเกิน 2 วันหรือมีไข้ ควรพบแพทย์':''}`);
+  else { const l=cnt(P,e=>+e.shape>=6); if(l>=2) add(1,`ขี้เหลว (แบบ 6–7) ${l} ครั้งในสัปดาห์`); }
+  const shaped=P.filter(e=>e.shape); const hard=cnt(shaped,e=>+e.shape<=2);
+  if(shaped.length>=2&&hard/shaped.length>=0.5) add(1,`ขี้แข็ง (แบบ 1–2) ${hard} จาก ${shaped.length} ครั้ง มีแนวโน้มท้องผูก ลองเพิ่มน้ำและผักผลไม้`);
+  const all=Object.values(days).flat(); const first=Math.min(...all.map(e=>e.t));
+  const lastPoo=Math.max(-Infinity,...all.filter(e=>e.type==='poo').map(e=>e.t));
+  const trackedDays=(Date.now()-first)/864e5;
+  const gap=(Date.now()-(isFinite(lastPoo)?lastPoo:first))/864e5;
+  if(trackedDays>=3&&gap>=3) add(gap>=5?2:1,`ไม่ได้ถ่ายมา ${Math.floor(gap)} วัน${gap>=5?' ถ้ามีท้องอืดหรือปวดท้อง ควรพบแพทย์':''} (ถ้าบันทึกครบทุกครั้ง)`);
+  const mucus=cnt(P,e=>(e.extra||[]).includes('mucus')); if(mucus>=2) add(1,`ขี้มีมูก ${mucus} ครั้ง`);
+  const pain=cnt(P,e=>(e.extra||[]).includes('pain')); if(pain>=3) add(1,`ปวดท้องตอนขับถ่าย ${pain} ครั้ง`);
+  const has=(arr,k)=>cnt(arr,e=>(e.extra||[]).includes(k));
+  const anyE=k=>has(E,k);
+  const fever=anyE('fever'), vomit=anyE('vomit'), loose=cnt(P,e=>+e.shape>=6);
+  if(fever&&loose) add(2,`ถ่ายเหลวร่วมกับมีไข้ ควรพบแพทย์`);
+  else if(vomit&&loose) add(2,`ถ่ายเหลวร่วมกับอาเจียน เสี่ยงขาดน้ำ ถ้าดื่มน้ำไม่ได้ควรพบแพทย์`);
+  else if(fever) add(1,`มีไข้ ${fever} ครั้ง ถ้าไข้ไม่ลงใน 2–3 วัน ควรพบแพทย์`);
+  if(anyE('dizzy')&&(loose||black||red)) add(2,`หน้ามืดร่วมกับถ่ายผิดปกติ ควรพบแพทย์`);
+  const bp=has(P,'bloodpaper'); if(bp) add(bp>=3?2:1,`เลือดติดกระดาษ ${bp} ครั้ง มักเกิดจากริดสีดวงหรือแผลที่ก้น${bp>=3?' แต่เกิดบ่อย ควรพบแพทย์':''}`);
+  const oily=has(P,'oily'); if(oily>=2) add(1,`ขี้มีมันลอย ${oily} ครั้ง อาจย่อยไขมันได้ไม่ดี`);
+  const thin=has(P,'thin'); if(thin>=3) add(1,`ขี้ลำเล็กผิดปกติ ${thin} ครั้ง ถ้าเป็นต่อเนื่องควรปรึกษาแพทย์`);
+  const lax=has(P,'laxative'); if(lax>=3) add(1,`ใช้ยาระบาย ${lax} ครั้งในสัปดาห์ ไม่ควรใช้ต่อเนื่องนานโดยไม่ปรึกษาแพทย์`);
+  const bloat=has(P,'bloat')+has(P,'gas')+has(P,'cramp'); if(bloat>=4) add(1,`ท้องอืด ปวดบิด หรือผายลมบ่อย รวม ${bloat} ครั้ง ลองสังเกตว่าสัมพันธ์กับอาหารอะไร`);
+
+  // urine
+  const ured=cnt(U,e=>e.color==='red'), amber=cnt(U,e=>e.color==='amber');
+  if(ured) add(ured>=2?2:1,`ปัสสาวะสีชมพู/แดง ${ured} ครั้ง ${ured>=2?'เกิดซ้ำ ควรพบแพทย์':'อาจเกิดจากอาหารบางอย่าง ถ้าเกิดซ้ำควรพบแพทย์'}`);
+  if(amber) add(amber>=3?2:1,`ปัสสาวะสีน้ำตาล ${amber} ครั้ง อาจขาดน้ำมาก${amber>=3?' ถ้าดื่มน้ำแล้วยังเป็น ควรพบแพทย์':' ลองดื่มน้ำเพิ่มแล้วสังเกต'}`);
+  const burn=cnt(U,e=>(e.extra||[]).includes('burn'));
+  const cloudy=cnt(U,e=>e.look==='cloudy'||e.color==='cloudy');
+  if(burn) add(burn>=3||(burn&&(cloudy||ured))?2:1,`แสบขัดเวลาปัสสาวะ ${burn} ครั้ง${burn>=3||cloudy||ured?' อาจเป็นกระเพาะปัสสาวะอักเสบ ควรพบแพทย์':' ดื่มน้ำมากขึ้นแล้วสังเกตต่อ'}`);
+  else if(cloudy>=3) add(1,`ปัสสาวะขุ่น ${cloudy} ครั้ง`);
+  const ub=has(U,'blood'); if(ub) add(2,`เห็นเลือดปนในปัสสาวะ ${ub} ครั้ง ควรพบแพทย์`);
+  const flank=has(U,'flank');
+  if(flank&&(burn||anyE('fever')||has(U,'chills'))) add(2,`ปวดบั้นเอวร่วมกับแสบขัดหรือมีไข้ อาจเป็นกรวยไตอักเสบ ควรพบแพทย์`);
+  else if(flank>=2) add(1,`ปวดหลัง/บั้นเอว ${flank} ครั้ง`);
+  if(has(U,'fever')&&has(U,'chills')) add(2,`มีไข้และหนาวสั่น ควรพบแพทย์`);
+  const sed=has(U,'sediment'); if(sed>=2) add(sed>=3?2:1,`ปัสสาวะมีตะกอน/เม็ดทราย ${sed} ครั้ง อาจเกี่ยวกับนิ่ว${sed>=3?' ควรพบแพทย์':''}`);
+  const weak=has(U,'weak')+has(U,'hesitant')+has(U,'drip'); if(weak>=3) add(1,`เยี่ยวไม่พุ่ง รอนาน หรือไม่สุด รวม ${weak} ครั้ง ควรปรึกษาแพทย์ถ้าเป็นต่อเนื่อง`);
+  const night=has(U,'night'); if(night>=4) add(1,`ตื่นมาเยี่ยวกลางคืน ${night} ครั้งในสัปดาห์ ลองลดน้ำก่อนนอน ถ้ายังเป็นควรตรวจ`);
+  const leak=has(U,'leak'); if(leak>=3) add(1,`เยี่ยวเล็ด ${leak} ครั้ง`);
+  if(has(U,'thirst')>=2&&(has(U,'frequent')>=2||U.length/7>10)) add(1,`กระหายน้ำมากร่วมกับเยี่ยวบ่อย ควรตรวจระดับน้ำตาลในเลือด`);
+  const sw=has(U,'swelling'); if(sw&&foam0()) add(2,`บวมร่วมกับปัสสาวะมีฟอง ควรตรวจการทำงานของไต`); else if(sw>=2) add(1,`บวม ${sw} ครั้ง`);
+  function foam0(){return cnt(U,e=>e.look==='foamy')>=2}
+  const foam=cnt(U,e=>e.look==='foamy'); if(foam>=3) add(1,`ปัสสาวะมีฟองมาก ${foam} ครั้ง ถ้ามีต่อเนื่องหลายวันควรตรวจปัสสาวะ`);
+  const colored=U.filter(e=>e.color); const dark=cnt(colored,e=>e.color==='dark');
+  if(colored.length>=3&&dark/colored.length>=0.4) add(1,`ปัสสาวะเหลืองเข้ม ${dark} จาก ${colored.length} ครั้ง น่าจะดื่มน้ำน้อยไป`);
+  const doneDays=keys.slice(1).filter(k=>(days[k]||[]).length);
+  if(doneDays.length>=2){
+    const avg=doneDays.reduce((s,k)=>s+cnt(days[k],e=>e.type==='pee'),0)/doneDays.length;
+    if(avg>10) add(1,`เยี่ยวเฉลี่ย ${avg.toFixed(1)} ครั้ง/วัน ถือว่าบ่อย ถ้าไม่ได้ดื่มน้ำมากเป็นพิเศษ ควรสังเกตต่อ`);
+    else if(avg<4) add(1,`เยี่ยวเฉลี่ย ${avg.toFixed(1)} ครั้ง/วัน ค่อนข้างน้อย ลองดื่มน้ำเพิ่ม (หรืออาจบันทึกไม่ครบ)`);
+  }
+
+  if(!items.length){
+    if(shaped.length){const good=cnt(shaped,e=>+e.shape>=3&&+e.shape<=5); if(good) add(0,`ขี้ลักษณะปกติ (แบบ 3–5) ${good} จาก ${shaped.length} ครั้ง`)}
+    if(colored.length){const ok=cnt(colored,e=>['clear','pale','yellow'].includes(e.color)); if(ok) add(0,`ปัสสาวะสีปกติ ${ok} จาก ${colored.length} ครั้ง`)}
+    if(!items.length) add(0,'ยังไม่พบสิ่งที่น่ากังวลจากข้อมูลที่บันทึก');
+  }
+  items.sort((a,b)=>b.lv-a.lv);
+  return {lv:Math.max(...items.map(i=>i.lv)),items,n:E.length};
+}
+function renderAssess(){
+  const r=assess(); const box=$('assess');
+  if(r.lv<0){box.innerHTML='<span class="badge lvn">ยังไม่มีข้อมูล</span><div class="fine">บันทึกสักสองสามวัน แล้วระบบจะช่วยสรุปให้</div>';return}
+  const B=[['lv0','✓ ปกติดี'],['lv1','ควรสังเกต'],['lv2','ควรปรึกษาแพทย์']][r.lv];
+  box.innerHTML=`<span class="badge ${B[0]}">${B[1]}</span>
+    <ul class="alist">${r.items.map(i=>`<li><i class="i${i.lv}"></i><span>${i.text}</span></li>`).join('')}</ul>
+    <div class="fine">ประเมินจาก ${r.n} รายการใน 7 วันล่าสุด เป็นแค่การคัดกรองเบื้องต้น ไม่ใช่การวินิจฉัย ถ้ามีไข้ ปวดท้องมาก อาเจียน หรืออ่อนเพลียผิดปกติ ควรไปพบแพทย์ทันทีโดยไม่ต้องรอผลจากแอป</div>`;
+}
+
+/* ---------- sheet ---------- */
+function openSheet(type){
+  const T=TYPES[type];
+  draft={type,base:Date.now(),off:0};
+  T.groups.forEach(g=>draft[g.key]=g.kind==='multi'?[]:null);
+  $('sheet').dataset.type=type; $('sIco').textContent=T.ico; $('sTitle').textContent=`บันทึก${T.name}`;
+  const tc=$('timeChips'); tc.innerHTML='';
+  TIME_OFFSETS.forEach(o=>{
+    const b=document.createElement('button');b.className='chip';b.textContent=o.n;b.setAttribute('aria-pressed',o.m===0);
+    b.onclick=()=>{draft.off=o.m;[...tc.children].forEach(c=>c.setAttribute('aria-pressed',c===b));updTime()};
+    tc.appendChild(b);
+  });
+  const gw=$('groups'); gw.innerHTML='';
+  T.groups.forEach(g=>{
+    const box=document.createElement('div'); box.className='grp';
+    box.innerHTML=`<h4>${g.label} ${g.kind==='multi'?'<span>(เลือกได้หลายข้อ ไม่เลือกก็ได้)</span>':''}</h4>`;
+    const wrap=document.createElement('div');
+    wrap.className=g.kind==='swatch'?'swatches':g.kind==='shape'?'shapes':'chips';
+    let cur=wrap, lastSec=null;
+    if(g.kind==='multi'&&g.options[0].sec){wrap.className='secs'}
+    g.options.forEach(o=>{
+      if(g.kind==='multi'&&o.sec&&o.sec!==lastSec){lastSec=o.sec;const h=document.createElement('div');h.className='sec';h.textContent=o.sec;wrap.appendChild(h);cur=document.createElement('div');cur.className='chips';wrap.appendChild(cur)}
+      const b=document.createElement('button'); b.setAttribute('aria-pressed','false');
+      if(g.kind==='swatch'){b.className='sw';b.innerHTML=`<i style="background:${o.c}"></i>${o.n}`}
+      else if(g.kind==='shape'){b.className='shape';b.innerHTML=`<svg viewBox="0 0 60 24" fill="currentColor" aria-hidden="true">${BRISTOL_SVG[o.k]}</svg><span><b>${o.k}</b>${o.n}<br><span style="color:var(--muted);font-size:13px">${o.tag}</span></span>`}
+      else{b.className='chip';b.textContent=o.n}
+      b.onclick=()=>{
+        if(g.kind==='multi'){
+          const a=draft[g.key]; const i=a.indexOf(o.k); i>=0?a.splice(i,1):a.push(o.k);
+          b.setAttribute('aria-pressed',i<0);
+        }else{
+          draft[g.key]=draft[g.key]===o.k?null:o.k;
+          [...wrap.children].forEach((c,j)=>c.setAttribute('aria-pressed',g.options[j].k===draft[g.key]));
+        }
+        updAlerts();
+      };
+      cur.appendChild(b);
+    });
+    box.appendChild(wrap); gw.appendChild(box);
+  });
+  updTime(); updAlerts();
+  $('scrim').classList.add('show'); $('sheet').classList.add('show'); $('sheet').scrollTop=0;
+  setTimeout(()=>$('save').focus({preventScroll:true}),50);
+}
+function updTime(){ $('sTime').textContent=hm(draft.base-draft.off*60000) }
+function updAlerts(){
+  const col=draft.color?findOpt(draft.type,'color',draft.color):null;
+  const w=$('alertW'), h=$('alertH');
+  w.classList.toggle('show',!!(col&&col.warn));
+  if(col&&col.warn) w.textContent=`${col.warn} อาจเกิดจากอาหาร ยา หรือวิตามินบางชนิด แต่ถ้าเป็นซ้ำ หรือมีอาการอื่นร่วม ควรไปพบแพทย์`;
+  h.classList.toggle('show',!!(col&&col.hint)); if(col&&col.hint) h.textContent=col.hint;
+}
+function closeSheet(){ $('scrim').classList.remove('show'); $('sheet').classList.remove('show'); draft=null }
+function saveDraft(){
+  const t=draft.base-draft.off*60000; const k=dayKey(new Date(t));
+  const e={id:t.toString(36)+Math.random().toString(36).slice(2,6),t,type:draft.type};
+  TYPES[draft.type].groups.forEach(g=>{const v=draft[g.key]; if(v!=null&&!(Array.isArray(v)&&!v.length)) e[g.key]=Array.isArray(v)?v.slice():v});
+  (days[k]=days[k]||[]).push(e);
+  const name=TYPES[draft.type].name;
+  closeSheet(); viewDay=k; persistDay(k); render(); toast(`บันทึก${name}แล้ว ${hm(t)}`);
+}
+
+document.querySelectorAll('.bigbtn').forEach(b=>b.onclick=()=>openSheet(b.dataset.type));
+$('cancel').onclick=closeSheet; $('scrim').onclick=closeSheet; $('save').onclick=saveDraft;
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&draft) closeSheet()});
+$('prev').onclick=()=>{const d=keyToDate(viewDay);d.setDate(d.getDate()-1);viewDay=dayKey(d);openId=null;render()};
+$('next').onclick=()=>{const d=keyToDate(viewDay);d.setDate(d.getDate()+1);const k=dayKey(d);if(k<=dayKey(new Date())){viewDay=k;openId=null;render()}};
+
+function tick(){const n=new Date();$('clock').textContent=`${TH_DAYS[n.getDay()]} ${hm(n)}`}
+tick(); setInterval(()=>{tick(); if(!draft) render()},30000);
+render();
+// ในหน้า Claude ใช้บัญชี Claude ซิงก์ให้; เปิดไฟล์เองหรือบน GitHub Pages ใช้ Supabase login
+if(window.claude&&window.claude.use) initDb(); else initSupabase();
+</script>
+</body>
+</html>
